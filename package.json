@@ -2,10 +2,12 @@
   "name": "lab_6",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "main": "main.js",
+"scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "nodemon main.js -- -h localhost -p 3000 -c ./my-cache"
   },
+
   "repository": {
     "type": "git",
     "url": "git+https://github.com/olesia-oksana-borutsa/backend-course-2025-6.git"
@@ -16,5 +18,12 @@
   "bugs": {
     "url": "https://github.com/olesia-oksana-borutsa/backend-course-2025-6/issues"
   },
-  "homepage": "https://github.com/olesia-oksana-borutsa/backend-course-2025-6#readme"
+  "homepage": "https://github.com/olesia-oksana-borutsa/backend-course-2025-6#readme",
+  "dependencies": {
+    "commander": "^14.0.2",
+    "superagent": "^10.2.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
 }
