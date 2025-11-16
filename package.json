@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
-"scripts": {
+  "type": "module",
+  "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "nodemon main.js -- -h localhost -p 3000 -c ./my-cache"
   },
-
   "repository": {
     "type": "git",
     "url": "git+https://github.com/olesia-oksana-borutsa/backend-course-2025-6.git"
@@ -21,7 +21,11 @@
   "homepage": "https://github.com/olesia-oksana-borutsa/backend-course-2025-6#readme",
   "dependencies": {
     "commander": "^14.0.2",
-    "superagent": "^10.2.3"
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "superagent": "^10.2.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
