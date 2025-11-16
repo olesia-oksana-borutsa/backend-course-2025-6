@@ -27,8 +27,10 @@ const writeDB = (data) => fs.writeFileSync(dbPath, JSON.stringify(data, null, 2)
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, cache),
-  filename: (_, file, cb) =>
-    cb(null, Date.now() + path.extname(file.originalname)),
+  filename: (_, file, cb) => {
+    const name = Date.now() + path.extname(file.originalname);
+    cb(null, name);
+  }
 });
 
 const upload = multer({ storage });
@@ -109,11 +111,16 @@ app.post("/register", upload.single("photo"), (req, res) => {
 
   const items = readDB();
 
+  let photoValue = null;
+  if (req.file) {
+    photoValue = req.file.filename;
+  }
+
   const newItem = {
     id: Date.now().toString(),
     name: inventory_name,
     description: description || "",
-    photo: req.file ? req.file.filename : null,
+    photo: photoValue,
   };
 
   items.push(newItem);
@@ -132,10 +139,18 @@ app.post("/register", upload.single("photo"), (req, res) => {
  *         description: Масив речей
  */
 app.get("/inventory", (_, res) => {
-  const items = readDB().map((i) => ({
-    ...i,
-    photo_url: i.photo ? `/inventory/${i.id}/photo` : null,
-  }));
+  const items = readDB().map((i) => {
+    const obj = { ...i };
+
+    if (i.photo) {
+      obj.photo_url = `/inventory/${i.id}/photo`;
+    } else {
+      obj.photo_url = null;
+    }
+
+    return obj;
+  });
+
   res.json(items);
 });
 
@@ -161,10 +176,15 @@ app.get("/inventory/:id", (req, res) => {
   const item = readDB().find((i) => i.id === req.params.id);
   if (!item) return res.sendStatus(404);
 
-  res.json({
-    ...item,
-    photo_url: item.photo ? `/inventory/${item.id}/photo` : null,
-  });
+  const obj = { ...item };
+
+  if (item.photo) {
+    obj.photo_url = `/inventory/${item.id}/photo`;
+  } else {
+    obj.photo_url = null;
+  }
+
+  res.json(obj);
 });
 
 /**
@@ -275,8 +295,8 @@ app.put("/inventory/:id/photo", upload.single("photo"), (req, res) => {
   if (!req.file) return res.status(400).send("No photo uploaded.");
 
   if (item.photo) {
-    const oldPath = path.resolve(cache, item.photo);
-    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    const old = path.resolve(cache, item.photo);
+    if (fs.existsSync(old)) fs.unlinkSync(old);
   }
 
   item.photo = req.file.filename;
@@ -308,9 +328,10 @@ app.delete("/inventory/:id", (req, res) => {
   if (index === -1) return res.sendStatus(404);
 
   const item = items[index];
+
   if (item.photo) {
-    const oldPath = path.resolve(cache, item.photo);
-    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    const old = path.resolve(cache, item.photo);
+    if (fs.existsSync(old)) fs.unlinkSync(old);
   }
 
   items.splice(index, 1);
@@ -348,17 +369,17 @@ app.post("/search", (req, res) => {
   const item = readDB().find((i) => i.id === id);
   if (!item) return res.sendStatus(404);
 
-  const output = {
+  const obj = {
     id: item.id,
     name: item.name,
     description: item.description,
   };
 
   if (includePhoto === "on" && item.photo) {
-    output.photo_url = `/inventory/${item.id}/photo`;
+    obj.photo_url = `/inventory/${item.id}/photo`;
   }
 
-  res.json(output);
+  res.json(obj);
 });
 
 app.use((_, res) => res.sendStatus(405));
