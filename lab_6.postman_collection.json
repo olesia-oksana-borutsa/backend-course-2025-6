@@ -55,18 +55,18 @@
 					"formdata": [
 						{
 							"key": "inventory_name",
-							"value": "Happy Frog Mug",
+							"value": "Gingerbread Man Mug",
 							"type": "text"
 						},
 						{
 							"key": "description",
-							"value": "A handmade green ceramic mug shaped like a happy frog holding a yellow star. Features two large eyes and a smiling face.",
+							"value": "A festive mug shaped like a smiling gingerbread man. Brown glaze with white icing details, a red bow tie, and a red handle.",
 							"type": "text"
 						},
 						{
 							"key": "photo",
 							"type": "file",
-							"src": "postman-cloud:///1f0c31a6-3014-4900-b046-56b2220b4506"
+							"src": "postman-cloud:///1f0c31a0-6593-4140-b64d-607e4727eb75"
 						}
 					]
 				},
@@ -109,7 +109,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/inventory/1763317779831",
+					"raw": "http://localhost:3000/inventory/1763363835210",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -117,7 +117,7 @@
 					"port": "3000",
 					"path": [
 						"inventory",
-						"1763317779831"
+						"1763363835210"
 					]
 				}
 			},
@@ -129,7 +129,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/inventory/1763317779831/photo",
+					"raw": "http://localhost:3000/inventory/1763363835210/photo",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -137,7 +137,7 @@
 					"port": "3000",
 					"path": [
 						"inventory",
-						"1763317779831",
+						"1763363835210",
 						"photo"
 					]
 				}
@@ -151,7 +151,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Wizard Cat Mug\",\r\n  \"description\": \"Handmade-style beige speckled mug. Features a whimsical blue-line drawing of a cat wearing a wizard hat and cape, holding a star wand.\"\r\n}",
+					"raw": "{\r\n  \"name\": \"Wizard Cat Mug\",\r\n  \"description\": \"changed description\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -159,7 +159,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/inventory/1763317779831",
+					"raw": "http://localhost:3000/inventory/1763363782151",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -167,7 +167,7 @@
 					"port": "3000",
 					"path": [
 						"inventory",
-						"1763317779831"
+						"1763363782151"
 					]
 				}
 			},
@@ -189,7 +189,7 @@
 					]
 				},
 				"url": {
-					"raw": "http://localhost:3000/inventory/1763317746057/photo",
+					"raw": "http://localhost:3000/inventory/1763363782151/photo",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -197,7 +197,7 @@
 					"port": "3000",
 					"path": [
 						"inventory",
-						"1763317746057",
+						"1763363782151",
 						"photo"
 					]
 				}
@@ -214,7 +214,7 @@
 					"urlencoded": [
 						{
 							"key": "id",
-							"value": "1763317746057",
+							"value": "1763328203384",
 							"type": "text"
 						},
 						{
@@ -244,7 +244,7 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/inventory/1763317746057",
+					"raw": "http://localhost:3000/inventory/1763328203384",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -252,7 +252,7 @@
 					"port": "3000",
 					"path": [
 						"inventory",
-						"1763317746057"
+						"1763328203384"
 					]
 				}
 			},
