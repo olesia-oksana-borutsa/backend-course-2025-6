@@ -23,16 +23,13 @@ const dbPath = path.join(cache, "inventory.json");
 if (!fs.existsSync(dbPath)) fs.writeFileSync(dbPath, JSON.stringify([]));
 
 const readDB = () => JSON.parse(fs.readFileSync(dbPath, "utf-8"));
-const writeDB = (data) => fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+const writeDB = (data) =>
+  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, cache),
-  filename: (_, file, cb) => {
-    const name = Date.now() + path.extname(file.originalname);
-    cb(null, name);
-  }
+  filename: (_, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
 });
-
 const upload = multer({ storage });
 
 const app = express();
@@ -46,7 +43,6 @@ const swaggerSpec = swaggerJsdoc({
   },
   apis: ["./main.js"],
 });
-
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /**
@@ -54,7 +50,6 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  * /RegisterForm.html:
  *   get:
  *     summary: HTML-форма для реєстрації
- *     description: Повертає HTML-сторінку з формою для реєстрації.
  *     responses:
  *       200:
  *         description: HTML-сторінка
@@ -67,8 +62,7 @@ app.get("/RegisterForm.html", (_, res) =>
  * @swagger
  * /SearchForm.html:
  *   get:
- *     summary: HTML-форма пошуку
- *     description: Повертає HTML-сторінку з формою пошуку.
+ *     summary: HTML-форма для пошуку
  *     responses:
  *       200:
  *         description: HTML-сторінка
@@ -77,12 +71,13 @@ app.get("/SearchForm.html", (_, res) =>
   res.sendFile(path.resolve("SearchForm.html"))
 );
 
+//POST /register
+
 /**
  * @swagger
  * /register:
  *   post:
  *     summary: Реєстрація нової речі
- *     description: Створює новий запис (multipart/form-data).
  *     requestBody:
  *       required: true
  *       content:
@@ -110,25 +105,19 @@ app.post("/register", upload.single("photo"), (req, res) => {
   if (!inventory_name) return res.sendStatus(400);
 
   const items = readDB();
-
-  let photoValue = null;
-  if (req.file) {
-    photoValue = req.file.filename;
-  }
-
   const newItem = {
     id: Date.now().toString(),
     name: inventory_name,
     description: description || "",
-    photo: photoValue,
+    photo: req.file ? req.file.filename : null,
   };
-
   items.push(newItem);
   writeDB(items);
-
   res.status(201).json(newItem);
 });
 
+// get:/inventory:
+ 
 /**
  * @swagger
  * /inventory:
@@ -139,20 +128,14 @@ app.post("/register", upload.single("photo"), (req, res) => {
  *         description: Масив речей
  */
 app.get("/inventory", (_, res) => {
-  const items = readDB().map((i) => {
-    const obj = { ...i };
-
-    if (i.photo) {
-      obj.photo_url = `/inventory/${i.id}/photo`;
-    } else {
-      obj.photo_url = null;
-    }
-
-    return obj;
-  });
-
+  const items = readDB().map((i) => ({
+    ...i,
+    photo_url: i.photo ? `/inventory/${i.id}/photo` : null,
+  }));
   res.json(items);
 });
+
+//    get:/inventory/{id}:
 
 /**
  * @swagger
@@ -165,7 +148,6 @@ app.get("/inventory", (_, res) => {
  *         required: true
  *         schema:
  *           type: string
- *         description: ID речі
  *     responses:
  *       200:
  *         description: Об'єкт речі
@@ -175,18 +157,14 @@ app.get("/inventory", (_, res) => {
 app.get("/inventory/:id", (req, res) => {
   const item = readDB().find((i) => i.id === req.params.id);
   if (!item) return res.sendStatus(404);
-
-  const obj = { ...item };
-
-  if (item.photo) {
-    obj.photo_url = `/inventory/${item.id}/photo`;
-  } else {
-    obj.photo_url = null;
-  }
-
-  res.json(obj);
+  res.json({
+    ...item,
+    photo_url: item.photo ? `/inventory/${item.id}/photo` : null,
+  });
 });
 
+//  put:/inventory/{id}:
+ 
 /**
  * @swagger
  * /inventory/{id}:
@@ -198,7 +176,6 @@ app.get("/inventory/:id", (req, res) => {
  *         required: true
  *         schema:
  *           type: string
- *         description: ID речі
  *     requestBody:
  *       required: true
  *       content:
@@ -223,10 +200,11 @@ app.put("/inventory/:id", (req, res) => {
 
   if (req.body.name) item.name = req.body.name;
   if (req.body.description) item.description = req.body.description;
-
   writeDB(items);
   res.json(item);
 });
+
+//    get:/inventory/{id}/photo:
 
 /**
  * @swagger
@@ -237,9 +215,6 @@ app.put("/inventory/:id", (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
- *         description: ID речі
  *     responses:
  *       200:
  *         description: Фото
@@ -251,13 +226,11 @@ app.get("/inventory/:id/photo", (req, res) => {
   if (!item || !item.photo) return res.sendStatus(404);
 
   const photoPath = path.resolve(cache, item.photo);
-  if (fs.existsSync(photoPath)) {
-    res.setHeader("Content-Type", "image/jpeg");
-    res.sendFile(photoPath);
-  } else {
-    res.sendStatus(404);
-  }
+  if (!fs.existsSync(photoPath)) return res.sendStatus(404);
+  res.sendFile(photoPath);
 });
+
+//   put:/inventory/{id}/photo:
 
 /**
  * @swagger
@@ -268,9 +241,6 @@ app.get("/inventory/:id/photo", (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
- *         description: ID речі
  *     requestBody:
  *       required: true
  *       content:
@@ -291,19 +261,18 @@ app.put("/inventory/:id/photo", upload.single("photo"), (req, res) => {
   const items = readDB();
   const item = items.find((i) => i.id === req.params.id);
   if (!item) return res.sendStatus(404);
-
   if (!req.file) return res.status(400).send("No photo uploaded.");
-
   if (item.photo) {
-    const old = path.resolve(cache, item.photo);
-    if (fs.existsSync(old)) fs.unlinkSync(old);
+    const oldPath = path.resolve(cache, item.photo);
+    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
   }
-
   item.photo = req.file.filename;
   writeDB(items);
   res.json(item);
 });
 
+//   delete:/inventory/{id}:
+ 
 /**
  * @swagger
  * /inventory/{id}:
@@ -313,9 +282,6 @@ app.put("/inventory/:id/photo", upload.single("photo"), (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
- *         description: ID речі
  *     responses:
  *       200:
  *         description: Видалено
@@ -328,23 +294,22 @@ app.delete("/inventory/:id", (req, res) => {
   if (index === -1) return res.sendStatus(404);
 
   const item = items[index];
-
   if (item.photo) {
-    const old = path.resolve(cache, item.photo);
-    if (fs.existsSync(old)) fs.unlinkSync(old);
+    const oldPath = path.resolve(cache, item.photo);
+    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
   }
-
   items.splice(index, 1);
   writeDB(items);
-
   res.sendStatus(200);
 });
 
+//   post:/search:
+ 
 /**
  * @swagger
  * /search:
  *   post:
- *     summary: Пошук речі
+ *     summary: Пошук речі (POST)
  *     requestBody:
  *       required: true
  *       content:
@@ -359,13 +324,14 @@ app.delete("/inventory/:id", (req, res) => {
  *               includePhoto:
  *                 type: string
  *     responses:
- *       200:
+ *       201:
  *         description: Знайдено
  *       404:
  *         description: Не знайдено
  */
 app.post("/search", (req, res) => {
   const { id, includePhoto } = req.body;
+
   const item = readDB().find((i) => i.id === id);
   if (!item) return res.sendStatus(404);
 
@@ -374,16 +340,50 @@ app.post("/search", (req, res) => {
     name: item.name,
     description: item.description,
   };
-
   if (includePhoto === "on" && item.photo) {
     obj.photo_url = `/inventory/${item.id}/photo`;
   }
-
-  res.json(obj);
+  res.status(201).json(obj);
 });
 
-app.use((_, res) => res.sendStatus(405));
+//    get:/search:
 
+/**
+ * @swagger
+ * /search:
+ *   get:
+ *     summary: Пошук речі (GET )
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: includePhoto
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Знайдено
+ *       404:
+ *         description: Не знайдено
+ */
+app.get("/search", (req, res) => {
+  const { id, includePhoto } = req.query;
+  const item = readDB().find((i) => i.id === id);
+  if (!item) return res.sendStatus(404);
+  const obj = {
+    id: item.id,
+    name: item.name,
+    description: item.description,
+  };
+  if (includePhoto === "on" && item.photo) {
+    obj.photo_url = `/inventory/${item.id}/photo`;
+  }
+  res.json(obj);
+});
+app.use((_, res) => res.sendStatus(405));
 app.listen(port, host, () =>
   console.log(`Server running at http://${host}:${port}`)
 );
